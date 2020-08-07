@@ -16,7 +16,7 @@ import com.dino.learning.ui.model.request.UserDetailRequestModel;
 import com.dino.learning.ui.model.response.UserRest;
 
 @RestController
-@RequestMapping("users") //http://localhost:8080/users/
+@RequestMapping("users") //http://localhost:8080/users
 public class UserController {
 	@Autowired
 	UserService userService;
