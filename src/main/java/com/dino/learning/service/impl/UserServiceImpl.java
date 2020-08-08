@@ -2,6 +2,9 @@ package com.dino.learning.service.impl;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dino.learning.io.entity.UserEntity;
@@ -19,6 +22,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	Utils utils;
 	
+	@Autowired
+	BCryptPasswordEncoder bCryptPasswordEncoder;
+	
 	@Override
 	public UserDto createUser(UserDto user) {
 		if  (userRepository.findByEmail(user.getEmail()) != null) {
@@ -28,7 +34,7 @@ public class UserServiceImpl implements UserService {
 		UserEntity userEntity = new UserEntity();
 		BeanUtils.copyProperties(user, userEntity);
 		String generatedUserId = utils.generateUserId(30);
-		userEntity.setEncryptedPassword("test");
+		userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(user.getPassword()));
 		userEntity.setUserId(generatedUserId);
 		
 		UserEntity storedUserDetails = userRepository.save(userEntity);
@@ -36,5 +42,11 @@ public class UserServiceImpl implements UserService {
 		UserDto returnValue = new UserDto();
 		BeanUtils.copyProperties(storedUserDetails, returnValue);
 		return returnValue;
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
