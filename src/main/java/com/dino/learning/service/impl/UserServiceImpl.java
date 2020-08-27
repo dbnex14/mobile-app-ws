@@ -10,11 +10,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.dino.learning.exceptions.UserServiceException;
 import com.dino.learning.io.entity.UserEntity;
 import com.dino.learning.io.repository.UserRepository;
 import com.dino.learning.service.UserService;
 import com.dino.learning.shared.Utils;
 import com.dino.learning.shared.dto.UserDto;
+import com.dino.learning.ui.model.response.ErrorMessages;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -46,11 +48,48 @@ public class UserServiceImpl implements UserService {
 		BeanUtils.copyProperties(storedUserDetails, returnValue);
 		return returnValue;
 	}
+	
+	@Override
+	public UserDto updateUser(String userId, UserDto user) {
+		UserDto returnValue = new UserDto();
+		UserEntity userEntity = userRepository.findByUserId(userId);
+		if (userEntity == null) throw new UserServiceException(ErrorMessages.NO_RECORD_FOUND.getErrorMessage());
+		userEntity.setFirstName(user.getFirstName());
+		userEntity.setLastName(user.getLastName());
+		UserEntity updatedUserDetails = userRepository.save(userEntity);
+		BeanUtils.copyProperties(updatedUserDetails, returnValue);
+		return returnValue;
+	}
+	
+	@Override
+	public void deleteUser(String userId) {
+		UserEntity userEntity = userRepository.findByUserId(userId);
+		if (userEntity == null) throw new UserServiceException(ErrorMessages.NO_RECORD_FOUND.getErrorMessage());
+		userRepository.delete(userEntity);
+	}
 
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		UserEntity userEntity = userRepository.findByEmail(email);
 		if (userEntity == null) throw new UsernameNotFoundException(email);
 		return new User(userEntity.getEmail(), userEntity.getEncryptedPassword(), new ArrayList<>());
+	}
+
+	@Override
+	public UserDto getUser(String email) {
+		UserEntity userEntity = userRepository.findByEmail(email);
+		if (userEntity == null) throw new UsernameNotFoundException(email);
+		UserDto returnValue = new UserDto();
+		BeanUtils.copyProperties(userEntity, returnValue);
+		return returnValue;
+	}
+
+	@Override
+	public UserDto getUserByUserId(String userId) {
+		UserDto returnValue = new UserDto();
+		UserEntity userEntity = userRepository.findByUserId(userId);
+		if (userEntity == null) throw new UserServiceException("User with Id " + userId + " not found.");
+		BeanUtils.copyProperties(userEntity, returnValue);
+		return returnValue;
 	}
 }
