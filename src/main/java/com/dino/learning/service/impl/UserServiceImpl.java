@@ -1,9 +1,13 @@
 package com.dino.learning.service.impl;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -90,6 +94,23 @@ public class UserServiceImpl implements UserService {
 		UserEntity userEntity = userRepository.findByUserId(userId);
 		if (userEntity == null) throw new UserServiceException("User with Id " + userId + " not found.");
 		BeanUtils.copyProperties(userEntity, returnValue);
+		return returnValue;
+	}
+
+	@Override
+	public List<UserDto> getUsers(int page, int limit) {
+		List<UserDto> returnValue = new ArrayList<>();
+		//userRepository.findAll();  //comes from CrudRepository but returns ALL users
+		if (page > 0) page = page-1; // make pages start with 1 instead of 0
+		Pageable pagableRequest = PageRequest.of(page, limit);
+		Page<UserEntity> usersPage = userRepository.findAll(pagableRequest); //comes from PagableAndSortableRepository
+		List<UserEntity> userEntitities = usersPage.getContent();
+		
+		for (UserEntity userEntity : userEntitities) {
+			UserDto userDto = new UserDto();
+			BeanUtils.copyProperties(userEntity, userDto);
+			returnValue.add(userDto);
+		}
 		return returnValue;
 	}
 }
